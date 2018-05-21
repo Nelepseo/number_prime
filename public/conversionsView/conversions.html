@@ -1,0 +1,404 @@
+<html>
+<head>
+  <style>
+    body {
+      background-color: #64B5C8;
+      background-image: url("/img/mathBackground.jpg");
+      background-repeat: repeat-y;
+      background-position: center;
+  }
+
+.button1 {
+  background-color: #764DC5;
+  color: white;
+  font-size: 28px;
+  border: 2px solid black;
+  cursor: pointer;
+  } /* Blue */
+
+   .button1:hover {
+    background-color: black;
+    color: white;
+    }
+
+.button2 {
+  background-color: #764DC5;
+  font-size: 18px;
+  color: white;
+  border: 2px solid black;
+  cursor: pointer;
+  display:inline-block;
+
+  } /* Blue */
+
+   .button2:hover {
+    background-color: black;
+    color: white;
+    }
+   
+div {
+    background-color: #BCF429;
+    width: 400px;
+    border: 25px solid #037089;
+    padding: 25px;
+    margin: 25px;
+}
+
+div {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+}
+
+</style>
+</head>
+
+<div ng-app="conversions" ng-controller="conversionsController">
+<input id="cParams" type="hidden" value={{conversionParams}}>
+<input id="conversionsReady" type="hidden" value="0">
+<body>
+  <div id="questionsDiv">
+    <button onclick="start()" id="onStart" class="button1">Click here when you are ready to start!</button>
+
+    <div id="main" style="display: none;">
+      <p id="question"><b></b></p> 
+      Answer: <input type="text" id="answer"><br>
+      <button onclick="submit()" class="button2">Submit</button> 
+      <p id="output"></p>
+      <button id="nextQuestionId" onclick="nextQuestion()" style="display: block;" class="button2">Next Question!</button> 
+    </div>
+  </div>
+
+  <div id="resultsDiv" style="display: none;">
+    <p id="resultContent"></p>
+    <a id="dashLink" style="display: none;" href="/#!/studentView">Back to dashboard</a>
+  </div>
+ 
+<script>
+var studentAnswers = [];
+var questionsList = [];
+var answerList = [3600, 200, 300];
+var curQuestionId = -1;
+var correctCount = 0;
+var randomCategory;
+var length_unit_us = ["Inches","Feet","yards","miles"];
+var length_unit_m = ["millimeter","centimeter","meter","kilometer"];
+var mass_unit_us = ["ounces","pounds","ton",];
+var mass_unit_m = ["grams","kilograms"];
+var time_unit = ["seconds","minutes","hours"];
+var n = 0;
+var cParams = document.getElementById("cParams");
+var cParamsVal = cParams.value;
+var convReady = document.getElementById("conversionsReady");
+var cTimer = setInterval(function(){ 
+	if (cParams.value != cParamsVal) {
+        clearInterval(cTimer);
+        convReady.value = 1;
+        cParamsVal = cParams.value;
+        cParamsVal = cParamsVal.split(',');
+        for (var i = 0; i < cParamsVal.length; i++) {
+            cParamsVal[i] = parseInt(cParamsVal[i]);
+        }
+	}
+}, 10);
+
+function submit() 
+{
+    document.getElementById("output").style.display = "block";
+    var x = document.getElementById("answer").value;  
+    studentAnswers.push(x);
+
+
+
+
+
+    if(x == questionsList[n].answer){
+        document.getElementById("output").innerHTML = "Your answer is correct!";
+        document.getElementById("nextQuestionId").style.display = "block";
+        correctCount = correctCount + 1
+    }
+    else {
+        document.getElementById("output").innerHTML = "Your answer is wrong!";
+    }
+    
+}
+
+function start()
+{
+    if (!convReady.value) 
+        return;
+    document.getElementById("onStart").style.display = "none";
+    document.getElementById("main").style.display = "block";
+    var myQuestion = new questions();
+    questionsList.push(myQuestion);
+    document.getElementById("question").innerHTML = "Convert " + myQuestion.randomNumber + " " + myQuestion.fromUnit + " to " + myQuestion.toUnit + " . "; 
+}
+
+function nextQuestion()
+{
+
+    if(10 == (questionsList.length))
+    {
+        var dom_el = document.querySelector('[ng-controller="conversionsController"]');
+	    var ng_el = angular.element(dom_el);
+        var conversionScope = ng_el.scope();
+        console.log(conversionScope);
+        console.log(correctCount + "-" + questionsList.length);
+        console.log(questionsList);
+        conversionScope.writeConversionSet(correctCount,questionsList,studentAnswers);
+        resultPage()
+
+    }
+    else
+    {
+        document.getElementById("output").style.display = "none";
+        document.getElementById("main").style.display = "block";
+        var myQuestion = new questions();
+        questionsList.push(myQuestion);
+        n = n + 1;
+        document.getElementById("question").innerHTML = "Convert " + myQuestion.randomNumber + " " + myQuestion.fromUnit + " to " + myQuestion.toUnit + ".";        
+        document.getElementById("answer").value = "";
+    }
+}
+
+function getQuestion()
+{
+    curQuestionId = curQuestionId + 1;
+    /*curQuestionId = Math.floor((Math.random() * questionsList.length) + 0);*/
+    var curQuestion = questionsList[curQuestionId];
+    return curQuestion;
+
+}
+
+
+
+function resultPage()
+{
+    document.getElementById("questionsDiv").style.display = "none";
+    document.getElementById("resultsDiv").style.display = "block";
+    document.getElementById("resultContent").innerHTML = "You have got " + correctCount + " out of " + questionsList.length + "."
+    document.getElementById("dashLink").style.display = "block";
+}
+
+function questions () {
+    this.randomNumber = getRandomNumbers(),
+    this.fromUnit = getFrom(),
+    this.toUnit = getTo(this.fromUnit),
+    this.answer = calculateAnswer(this.fromUnit,this.toUnit,this.randomNumber)
+
+};
+
+function getRandomNumbers(){
+      var maxC = (cParamsVal[1]);
+      var minC = (cParamsVal[2]);
+      var diffC = maxC-minC;
+      var number = Math.round(Math.random()*diffC)+minC;
+      return number;
+}
+
+function getFrom(){
+    var categories = ["LengthUS", "LengthMetric", "MassUS", "MassMetric", "Time"];
+//     randomCategory = categories[Math.floor(Math.random()*categories.length)];
+    randomCategory = categories[cParamsVal[0]];  
+    if(randomCategory == "LengthUS"){
+        var randomLengthUs = length_unit_us[Math.floor(Math.random()*length_unit_us.length)];
+        return randomLengthUs;
+    }
+    if(randomCategory == "MassUS"){
+        var randomMassUS = mass_unit_us[Math.floor(Math.random()*mass_unit_us.length)];
+        return randomMassUS;
+    }
+    if(randomCategory == "Time"){
+        var randomTime = time_unit[Math.floor(Math.random()*time_unit.length)];
+        return randomTime
+    }
+     if(randomCategory == "LengthMetric"){
+        var randomLengthMetric = length_unit_m[Math.floor(Math.random()*length_unit_m.length)];
+        return randomLengthMetric
+    }
+     if(randomCategory == "MassMetric"){
+        var randomMassMetric = mass_unit_m[Math.floor(Math.random()*mass_unit_m.length)];
+        return randomMassMetric
+    }
+
+}
+
+function getTo(fromUnit){
+    if(randomCategory == "LengthUS"){
+        var randomLengthUs = length_unit_us[Math.floor(Math.random()*length_unit_us.length)];
+        while(randomLengthUs == fromUnit)
+        {
+        var randomLengthUs = length_unit_us[Math.floor(Math.random()*length_unit_us.length)];
+         
+        }
+        return randomLengthUs;
+        
+    }
+    if(randomCategory == "LengthMetric"){
+        var randomLengthMetric = length_unit_m[Math.floor(Math.random()*length_unit_m.length)];
+        while(randomLengthMetric == fromUnit)
+        {
+        var randomLengthMetric = length_unit_m[Math.floor(Math.random()*length_unit_m.length)];
+         
+        }
+        return randomLengthMetric;
+        
+    }
+    if(randomCategory == "MassUS"){
+        var randomMassUS = mass_unit_us[Math.floor(Math.random()*mass_unit_us.length)];
+        while(randomMassUS == fromUnit)
+        {
+        var randomMassUS = mass_unit_us[Math.floor(Math.random()*mass_unit_us.length)];
+         
+        }
+        return randomMassUS;
+    }
+    if(randomCategory == "MassMetric"){
+        var randomMassMetric = mass_unit_m[Math.floor(Math.random()*mass_unit_m.length)];
+        while(randomMassMetric == fromUnit)
+        {
+        var randomMassMetric = mass_unit_m[Math.floor(Math.random()*mass_unit_m.length)];
+         
+        }
+        return randomMassMetric;
+    }
+    if(randomCategory == "Time"){
+        var randomTime = time_unit[Math.floor(Math.random()*time_unit.length)];
+        while(randomTime == fromUnit)
+        {
+         var randomTime = time_unit[Math.floor(Math.random()*time_unit.length)];
+         
+        }
+        return randomTime;
+    }
+
+
+}
+
+function calculateAnswer(fromUnit,toUnit,randomNumber){
+        if("seconds" == fromUnit  && "minutes" == toUnit){
+            return randomNumber/60;
+        }
+        else if(fromUnit == "seconds" && toUnit == "hours"){
+            return randomNumber/3600;
+        }
+        else if(fromUnit == "minutes" && toUnit == "hours"){
+            return randomNumber/60;
+        }
+        else if(fromUnit == "minutes" && toUnit == "seconds"){
+            return randomNumber*60;
+        }
+        else if(fromUnit == "hours" && toUnit == "minutes"){
+            return randomNumber*60;
+        }
+        else if(fromUnit == "hours" && toUnit == "seconds"){
+            return (randomNumber*3600);
+        }
+        else if(fromUnit == "Inches" && toUnit == "Feet"){
+            return (randomNumber/12);
+        }
+        else if(fromUnit == "Inches" && toUnit == "yards"){
+            return (randomNumber*0.027778);
+        }
+        else if(fromUnit == "Inches" && toUnit == "miles"){
+            return (randomNumber*1.5783E-5);
+        }
+        else if(fromUnit == "Feet" && toUnit == "Inches"){
+            return (randomNumber*12);
+        }
+        else if(fromUnit == "Feet" && toUnit == "yards"){
+            return (randomNumber/3);
+        }
+        else if(fromUnit == "Feet" && toUnit == "miles"){
+            return (randomNumber*0.000189393939);
+        }
+        else if(fromUnit == "yards" && toUnit == "Feet"){
+            return (randomNumber*3);
+        }
+        else if(fromUnit == "yards" && toUnit == "miles"){
+            return (randomNumber*0.000568);
+        }
+        else if(fromUnit == "yards" && toUnit == "inches"){
+            return (randomNumber*36);
+        }
+        else if(fromUnit == "miles" && toUnit == "yards"){
+            return (randomNumber/0.000568);
+        }
+        else if(fromUnit == "miles" && toUnit == "feet"){
+            return (randomNumber*5280);
+        }
+        else if(fromUnit == "miles" && toUnit == "inches"){
+            return (randomNumber*63360);
+        }
+        else if(fromUnit == "millimeter" && toUnit == "centimeter"){
+            return (randomNumber/10);
+        }
+        else if(fromUnit == "millimeter" && toUnit == "meter"){
+            return (randomNumber/1000);
+        }
+        else if(fromUnit == "millimeter" && toUnit == "kilometer"){
+            return (randomNumber/1000000);
+        }
+        else if(fromUnit == "centimeter" && toUnit == "millimeter"){
+            return (randomNumber*10);
+        }
+        else if(fromUnit == "centimeter" && toUnit == "meter"){
+            return (randomNumber/100);
+        }
+        else if(fromUnit == "centimeter" && toUnit == "kilometer"){
+            return (randomNumber*0.000010);
+        }
+        else if(fromUnit == "meter" && toUnit == "centimeter"){
+            return (randomNumber*100);
+        }
+        else if(fromUnit == "meter" && toUnit == "millimeter"){
+            return (randomNumber*1000);
+        }
+        else if(fromUnit == "meter" && toUnit == "kilometer"){
+            return (randomNumber/1000);
+        }
+        else if(fromUnit == "kilometer" && toUnit == "meter"){
+            return (randomNumber*1000);
+        }
+        else if(fromUnit == "kilometer" && toUnit == "centimeter"){
+            return (randomNumber*100000);
+        }
+        else if(fromUnit == "kilometer" && toUnit == "millimeter"){
+            return (randomNumber*1000000);
+        }
+        else if(fromUnit == "ounces" && toUnit == "pounds"){
+            return (randomNumber/16);
+        }
+        else if(fromUnit == "ounces" && toUnit == "ton"){
+            return (randomNumber*3.125E-5);
+        }
+        else if(fromUnit == "pounds" && toUnit == "ounces"){
+            return (randomNumber*16);
+        }
+        else if(fromUnit == "pounds" && toUnit == "ton"){
+            return (randomNumber*0.0005);
+        }
+        else if(fromUnit == "ton" && toUnit == "pounds"){
+            return (randomNumber/0.0005);
+        }
+        else if(fromUnit == "ton" && toUnit == "ounces"){
+            return (randomNumber*32000);
+        }
+        else if(fromUnit == "grams" && toUnit == "kilograms"){
+            return (randomNumber/1000);
+        }
+        else if(fromUnit == "kilograms" && toUnit == "grams"){
+            return (randomNumber*1000);
+        }
+}
+
+</script>
+</body>
+</div>
+</html>
+
+
+

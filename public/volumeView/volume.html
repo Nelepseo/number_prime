@@ -1,0 +1,175 @@
+<!--Volume:
+  1. volume of cubes, cuboid stuff
+  2. elaines jewellery box
+  3. count/calculate unit cubes
+
+  Conversion:
+  1. convert time
+  2. which one is greater? (two different units)
+  3. Drag and drop: smallest to largest
+
+  Length:
+  1. Convert distance to different units (us and metric)
+  2. ruler graphic
+
+  Weight:
+  1. Convert weight to different units (us and metric)
+  2. graphic??
+  -->
+  <head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css">
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
+
+
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
+
+    <style>
+    *{margin:0;padding:0;}
+    body{overflow:hidden;background:#64B5C8;}
+    form {
+    position:absolute;
+    bottom:0;
+    left:0;
+    right:0;
+    background:#efefef;
+    padding:0.5em;
+    text-align:center;
+    }
+
+    /*#6130BF*/
+    h1 {
+      text-align: center;
+      color: lightgray;
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+
+    p {
+      text-align:center;
+      margin-top: 5em;
+    }
+
+    a {
+      color: white;
+      margin: auto;
+
+    }
+
+    canvas {
+      width: 90%;
+      height: 90%;
+      margin: auto;
+      display: block;
+      padding: 0;
+      vertical-align: middle;
+      border: 1px solid #BCF429;
+    }
+
+    #answer {
+      margin: auto;
+      width: 50%;
+      text-align: center;
+      align-items: center;
+    }
+
+
+    button {
+      border-radius: 6px;
+      margin: 0.5em;
+    }
+
+    input[type="text"], textarea {
+      background-color : white;
+    }
+    </style>
+  </head>
+  <div ng-app="volume" ng-controller="volumeController">
+  <input id="vParams" type="hidden" value={{volumeParams}}>
+  <input id="volumeReady" type="hidden" value="0">
+  <div ng-switch="report">
+    <div ng-switch-when="false">
+          <h1>Problem <span id="num"></span> of 5</h1>
+          <canvas id="myCanvas"></canvas>
+          <div id="answer">
+            <input id="ans" type="text" name="Your Answer"
+              style="background-color:white">
+            <button id="submission" onclick="checkAnswer()">Submit</button>
+          </div>
+          <form>
+            <input id="color" type="color" value="#84CD00">
+          </form>
+    </div>
+    <div ng-switch-when="true" style="text-align:center;">
+      <div class="container">
+        <div class="card" style="background-color:#BCF429; width: 350px; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);margin:auto;">
+          <img class="card-img-top" src="img/mascot.png" alt="mascot" width="10%" height="10%" style="display:block; margin-left:auto; margin-right:auto; "/>
+          <div class="card-body" style="text-align:center; background-color: #BCF429">
+            <p class="card-text">You got {{correct}} out of 5!</p>
+            <a class="btn btn-primary" style="background-color:#6130BF;" href="#!/studentView">Return to Dashboard</a>
+            <!--<button onclick="login()" id="sign-in-with-redirect" style="background-color:#764DC5;">Sign In With Google</button>-->
+        </div>
+      </div>
+  </div>
+  <script>
+    var vParams = document.getElementById("vParams");
+      var vParamsVal = vParams.value;
+      var volumeReady = document.getElementById("volumeReady");
+      var vTimer = setInterval(function () {
+        if (vParams.value != vParamsVal) {
+          clearInterval(vTimer);
+          volumeReady.value = 1;
+          vParamsVal = vParams.value;
+          vParamsVal = vParamsVal.split(',');
+          for (var i = 0; i < vParamsVal.length; i++) {
+            vParamsVal[i] = parseInt(vParamsVal[i]);
+          }
+        }
+      }, 1);
+
+      var volumeQuestions = [];
+      var volumeAnswers = [];
+      var volumeStudentAnswers = [];
+      var correct = 0;
+      var incorrect = 0;
+      var problemNumber = 1;
+      function checkAnswer() {
+        var dom_el = document.querySelector('[ng-controller="volumeController"]');
+          var ng_el = angular.element(dom_el);
+          var volumeScope = ng_el.scope();
+        if (document.getElementById('ans').value == volumeScope.x1 * volumeScope.x2 * volumeScope.y / 1000) {
+          correct++;
+        }
+        else {
+          incorrect++;
+        }
+        volumeStudentAnswers.push(document.getElementById('ans').value + "cm^3");
+        volumeQuestions.push(volumeScope.x1 / 10 + "cm *" + volumeScope.x2 / 10 + "cm *" + volumeScope.y / 10 + "cm");
+        volumeAnswers.push((volumeScope.x1 * volumeScope.x2 * volumeScope.y / 1000) + "cm^3");
+        console.log(volumeStudentAnswers);
+        console.log(volumeQuestions);
+        console.log(volumeAnswers);
+        problemNumber++;
+        if (problemNumber >= 6) {
+
+          //Write Problem to Backend
+
+          volumeScope.writeVolumeSet(correct, volumeStudentAnswers, volumeQuestions, volumeAnswers);
+
+          volumeScope.showReport(correct);
+          //$scope.report = "true";
+        }
+        else {
+          document.getElementById("num").innerHTML = problemNumber;
+          volumeScope.refresh();
+        }
+      }
+  </script>
+</div>

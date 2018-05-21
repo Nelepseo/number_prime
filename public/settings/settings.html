@@ -1,0 +1,85 @@
+
+<head>
+  <style>
+  fieldset {
+    width: 500px;
+    text-align: center;
+    margin: auto;
+    border: 1px solid black;
+    padding: 20px;
+  }
+  </style>
+</head>
+
+<body>
+
+  <div class="mascot" style="display:block;">
+    <img src="img/mascot.png" alt="mascot" width="100%" height="100%" />
+  </div>
+  <div id="topBorder" class="topBorder"><p>Settings</span></p></div>
+
+  <div id="mySidenav" class="sidenav">
+    <a href="#">
+      <img src="img/profileIcon.png" alt="Dashboard Icon" />
+       <p>Dashboard</p>
+     </a>
+    <a href="#">
+      <img src="img/logout.png" alt="Logout Icon"/>
+      <p>Logout</p>
+    </a>
+  </div>
+
+  <div  id="bg" class="bg">
+      <div style="background-color:#C8F577; padding:20px;">
+        <fieldset ng-app="settings" ng-controller="settings">
+          <legend>Your Profile</legend>
+          <div ng-switch="var">
+            <div ng-switch-when="true">
+              <p>Enter new name: <input maxlength="30" ng-model="name" placeholder="name" type="text"/></p>
+              <p>Enter new email: <input maxlength="30" ng-model="email" placeholder="email" type="text"/></p>
+              <p style='display: inline'>Role: <p style='display: inline' ng-bind="role"></p></p>
+              <button ng-click="cancel()">Cancel</button>
+              <button ng-click="saveChanges(name, email)">Save Changes</button>
+            </div>
+            <div ng-switch-default>
+              <p style='display: inline'>Name: <p style='display: inline'>{{name}}</p></p>
+              <p style='display: inline'>Email: <p style='display: inline'>{{email}}</p></p>
+              <p style='display: inline'>Role: <p style='display: inline' ng-bind="role"></p></p>
+            </div>
+          </div>
+
+          <button ng-click="editProfile()">Edit profile</button>
+        </fieldset>
+      </div>
+  </div>
+</body>
+
+<script>
+var waitForTransition = function(tG,type) {
+  if (type == 1) {
+    tG.style.opacity = "100";
+  }
+  else {
+    tG.style.width = "80%";
+    tG.style.left = "15%";
+  }
+}
+function toggleMenu() {
+  var width;
+  clearTimeout(waitForTransition);
+
+  var sN = document.getElementById("mathSB");
+  var sT;
+  var cT;
+  if (sN.style.opacity == "0") {
+    sT = Date.now();
+
+    setTimeout(waitForTransition
+    ,500,sN,1);
+  } else {
+    sN.style.opacity = "0";
+setTimeout(waitForTransition
+,500,bG,0);
+  }
+}
+</script>
